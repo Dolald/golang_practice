@@ -1,16 +1,29 @@
 package main
 
-import (
-	"log"
-	"net/http"
-)
-
 func main() {
+	array := [5]int{1, 2, 3, 5, 6}
 
-	http.ListenAndServe(":8080", nil)
+	Constructor(array)
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	log.Println("hello handler")
-	w.WriteHeader(http.StatusOK)
+type NumArray struct {
+	prefixTable []int
+}
+
+func Constructor(nums [5]int) NumArray {
+	numArr := new(NumArray)
+	numArr.prefixTable = make([]int, len(nums))
+	numArr.prefixTable[0] = nums[0]
+	for i := 1; i < len(nums); i++ {
+		numArr.prefixTable[i] = nums[i] + numArr.prefixTable[i-1]
+	}
+	return *numArr
+}
+
+func (this *NumArray) SumRange(left int, right int) int {
+	if left == 0 {
+		return this.prefixTable[right]
+	} else {
+		return this.prefixTable[right] - this.prefixTable[left-1]
+	}
 }
