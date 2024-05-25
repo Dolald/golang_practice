@@ -1,29 +1,25 @@
 package main
 
+import "fmt"
+
 func main() {
-	array := [5]int{1, 2, 3, 5, 6}
-
-	Constructor(array)
+	fmt.Println(hasCycle)
 }
 
-type NumArray struct {
-	prefixTable []int
+type ListNode struct {
+	Val  int
+	Next *ListNode
 }
 
-func Constructor(nums [5]int) NumArray {
-	numArr := new(NumArray)
-	numArr.prefixTable = make([]int, len(nums))
-	numArr.prefixTable[0] = nums[0]
-	for i := 1; i < len(nums); i++ {
-		numArr.prefixTable[i] = nums[i] + numArr.prefixTable[i-1]
+func hasCycle(head *ListNode) bool {
+	visited_nodes := make(map[*ListNode]bool)
+	current_node := head
+	for current_node != nil {
+		if visited_nodes[current_node] {
+			return true
+		}
+		visited_nodes[current_node] = true
+		current_node = current_node.Next
 	}
-	return *numArr
-}
-
-func (this *NumArray) SumRange(left int, right int) int {
-	if left == 0 {
-		return this.prefixTable[right]
-	} else {
-		return this.prefixTable[right] - this.prefixTable[left-1]
-	}
+	return false
 }
