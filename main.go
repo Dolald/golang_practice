@@ -5,15 +5,16 @@ import (
 )
 
 func main() {
-	a, b := 9, 9
-	fmt.Println(getSum(a, b))
+	a := "dslfr"
+	fmt.Println(checkIfPangram(a))
 }
 
-func getSum(a int, b int) int { // 9 -- 1001   9 -- 1001
-	for b != 0 {
-		temp := a & b << 1 // 10010 -- 0000
-		a = a ^ b          // 0000 -- 10010
-		b = temp           // 10010 -- 0000
+func checkIfPangram(sentence string) bool {
+	mp := make(map[rune]struct{})
+	for _, v := range sentence {
+		if _, ok := mp[v]; !ok {
+			mp[v] = struct{}{}
+		}
 	}
-	return a
+	return len(mp) == 26
 }
