@@ -6,42 +6,60 @@ import (
 )
 
 func main() {
-	a := make([]int, 0)
-	a = append(a, 18)
-	a = append(a, 0)
-	a = append(a, 9)
-	a = append(a, 18)
+	matrix := [][]int{
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0},
+		{1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+	}
 
-	fmt.Println(findOriginalArray(a))
+	c := 17
+
+	fmt.Println(kWeakestRows(matrix, c))
 }
 
-func findOriginalArray(changed []int) []int {
-	if len(changed)%2 != 0 {
-		return []int{}
-	}
+type myMap struct {
+	key   int
+	value int
+}
 
-	sort.Ints(changed)
+func kWeakestRows(mat [][]int, k int) []int {
+	var my []myMap
 
-	result := []int{}
-	mp := make(map[int]int)
-
-	for _, v := range changed {
-		mp[v]++
-	}
-
-	for _, v := range changed {
-
-		if mp[v] > 0 {
-			mp[v]--
-			if v, ok := mp[v*2]; ok {
-				if v > 0 {
-					result = append(result, v)
-					mp[v*2]--
-				} else {
-					return []int{}
-				}
-			}
+	for i, row := range mat {
+		count := 0
+		for _, val := range row {
+			count += val
 		}
+		my = append(my, myMap{i, count})
 	}
+
+	sort.Slice(my, func(i, j int) bool {
+		if my[i].value == my[j].value {
+			return my[i].key < my[j].key
+		}
+		return my[i].value < my[j].value
+	})
+
+	result := make([]int, k)
+	for i := 0; i < k; i++ {
+		result[i] = my[i].key
+	}
+
 	return result
 }
