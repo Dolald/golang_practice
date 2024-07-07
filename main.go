@@ -1,26 +1,56 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+	"time"
+)
 
 func main() {
-	a := "asdfgrs"
+	//start := time.Now()
+	//wait()
+	//withoutWait()
+	//fmt.Println(time.Now().Sub(start).Seconds())
 
-	fmt.Println(lengthOfLongestSubstring(a))
+	ch := make(chan int)
+
+	go task(ch, 5)
+
+	result := <-ch
+	fmt.Println(result) // Output: 6
 }
 
-func lengthOfLongestSubstring(s string) int {
-	var result, left int
-	mp := make(map[byte]int)
+func task(ch chan<- int, i int) {
+	ch <- i + 1
+	close(ch)
+}
 
-	for right := 0; right < len(s); right++ {
-		mp[s[right]]++
+func wait() {
+	var wg sync.WaitGroup
+	var mu sync.RWMutex
+	var result int
 
-		for mp[s[right]] > 1 {
-			mp[s[left]]--
-			left++
-		}
-		result = max(result, right-left+1)
+	wg.Add(1000)
+	for i := 0; i < 1000; i++ {
+
+		go func() {
+			defer wg.Done()
+			time.Sleep(time.Nanosecond)
+
+			mu.Lock()
+			result++
+			mu.Unlock()
+		}()
 	}
 
-	return result
+	wg.Wait()
+
+	fmt.Println(result)
+}
+
+func withoutWait() {
+	for i := 0; i < 1000; i++ {
+		time.Sleep(time.Nanosecond)
+		fmt.Println(i)
+	}
 }
