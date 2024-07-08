@@ -1,56 +1,38 @@
 package main
 
-import (
-	"fmt"
-	"sync"
-	"time"
-)
+import "fmt"
 
 func main() {
-	//start := time.Now()
-	//wait()
-	//withoutWait()
-	//fmt.Println(time.Now().Sub(start).Seconds())
+	// Пример использования функции removeDuplicates
+	inputs := []string{"a", "b", "w", "c", "c", "d", "d"}
+	inputStream := make(chan string, len(inputs))
+	outputStream := make(chan string)
 
-	ch := make(chan int)
+	go func() {
+		defer close(inputStream)
 
-	go task(ch, 5)
+		for _, input := range inputs {
+			fmt.Println("Input: %s to inputStream", input)
+			inputStream <- input
+		}
+	}()
 
-	result := <-ch
-	fmt.Println(result) // Output: 6
-}
+	go func() {
+		defer close(outputStream)
 
-func task(ch chan<- int, i int) {
-	ch <- i + 1
-	close(ch)
-}
+		var prev string
 
-func wait() {
-	var wg sync.WaitGroup
-	var mu sync.RWMutex
-	var result int
+		for val := range inputStream {
+			if val != prev {
+				outputStream <- val
+				fmt.Println("Input: %s to outputStream", val)
+				prev = val
+			}
+		}
+	}()
 
-	wg.Add(1000)
-	for i := 0; i < 1000; i++ {
-
-		go func() {
-			defer wg.Done()
-			time.Sleep(time.Nanosecond)
-
-			mu.Lock()
-			result++
-			mu.Unlock()
-		}()
+	for val := range outputStream {
+		fmt.Print(val)
 	}
 
-	wg.Wait()
-
-	fmt.Println(result)
-}
-
-func withoutWait() {
-	for i := 0; i < 1000; i++ {
-		time.Sleep(time.Nanosecond)
-		fmt.Println(i)
-	}
 }
