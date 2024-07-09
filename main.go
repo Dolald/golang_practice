@@ -1,38 +1,70 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
+
+type Order struct {
+	Id     int
+	Amount int
+}
 
 func main() {
-	// Пример использования функции removeDuplicates
-	inputs := []string{"a", "b", "w", "c", "c", "d", "d"}
-	inputStream := make(chan string, len(inputs))
-	outputStream := make(chan string)
+	notification := make(chan Order)
+	payment := make(chan Order)
+	validation := make(chan Order)
+
+	go notify(notification)
+	go pay(payment, notification)
+	go validate(validation, payment)
 
 	go func() {
-		defer close(inputStream)
-
-		for _, input := range inputs {
-			fmt.Println("Input: %s to inputStream", input)
-			inputStream <- input
+		defer close(validation)
+		orders := []Order{
+			{Id: 1, Amount: 200},
+			{Id: 2, Amount: 200},
+			{Id: 3, Amount: 0},
+			{Id: 4, Amount: 50},
+		}
+		for _, v := range orders {
+			validation <- v
 		}
 	}()
 
-	go func() {
-		defer close(outputStream)
+	time.Sleep(7 * time.Second)
+}
 
-		var prev string
-
-		for val := range inputStream {
-			if val != prev {
-				outputStream <- val
-				fmt.Println("Input: %s to outputStream", val)
-				prev = val
-			}
+func validate(validation chan Order, payment chan Order) {
+	defer close(payment)
+	for v := range validation {
+		if v.Amount > 0 {
+			fmt.Println("Validation order:", v.Id)
+			payment <- v
+		} else {
+			fmt.Println("Rejected order:", v.Id)
 		}
-	}()
+	}
+}
 
-	for val := range outputStream {
-		fmt.Print(val)
+func pay(payment chan Order, notification chan Order) {
+	defer close(notification)
+	for v := range payment {
+		fmt.Println("The order is being processed")
+		time.Sleep(1 * time.Second)
+		notification <- v
+	}
+}
+
+func notify(notification chan Order) {
+	for v := range notification {
+		fmt.Println("Sending notification for order:", v.Id)
+		time.Sleep(1 * time.Second)
+		fmt.Println("Completed processing order:", v.Id)
+	}
+
+	for v := range notification {
+		fmt.Println(v)
 	}
 
 }
