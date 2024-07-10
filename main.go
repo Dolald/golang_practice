@@ -2,69 +2,42 @@ package main
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
 
-type Order struct {
-	Id     int
-	Amount int
-}
+const numWorkers = 3
+const numTasks = 5
 
 func main() {
-	notification := make(chan Order)
-	payment := make(chan Order)
-	validation := make(chan Order)
+	var wg sync.WaitGroup
+	result := make(chan int, numTasks)
+	tasksChan := make(chan int, numTasks)
 
-	go notify(notification)
-	go pay(payment, notification)
-	go validate(validation, payment)
+	for idWorker := 1; idWorker <= numWorkers; idWorker++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done() // Этот вызов должен быть в конце горутины
+			for taskId := range tasksChan {
+				fmt.Printf("Рабочий %d начал выполнение задачи %d\n", idWorker, taskId)
+				time.Sleep(2 * time.Second) // имитация выполнения задачи
+				fmt.Printf("Рабочий %d завершил выполнение задачи %d\n", idWorker, taskId)
+				result <- taskId * 2
+			}
+		}() // Передаем idWorker как аргумент в анонимную функцию
+	}
 
 	go func() {
-		defer close(validation)
-		orders := []Order{
-			{Id: 1, Amount: 200},
-			{Id: 2, Amount: 200},
-			{Id: 3, Amount: 0},
-			{Id: 4, Amount: 50},
-		}
-		for _, v := range orders {
-			validation <- v
+		defer close(tasksChan)
+		for taskId := 1; taskId <= numTasks; taskId++ {
+			tasksChan <- taskId
 		}
 	}()
 
-	time.Sleep(7 * time.Second)
-}
+	wg.Wait()
+	close(result)
 
-func validate(validation chan Order, payment chan Order) {
-	defer close(payment)
-	for v := range validation {
-		if v.Amount > 0 {
-			fmt.Println("Validation order:", v.Id)
-			payment <- v
-		} else {
-			fmt.Println("Rejected order:", v.Id)
-		}
+	for res := range result {
+		fmt.Println("Результат работы:", res)
 	}
-}
-
-func pay(payment chan Order, notification chan Order) {
-	defer close(notification)
-	for v := range payment {
-		fmt.Println("The order is being processed")
-		time.Sleep(1 * time.Second)
-		notification <- v
-	}
-}
-
-func notify(notification chan Order) {
-	for v := range notification {
-		fmt.Println("Sending notification for order:", v.Id)
-		time.Sleep(1 * time.Second)
-		fmt.Println("Completed processing order:", v.Id)
-	}
-
-	for v := range notification {
-		fmt.Println(v)
-	}
-
 }
