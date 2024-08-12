@@ -2,22 +2,29 @@ package main
 
 import (
 	"fmt"
+	"sync"
 )
 
 func main() {
-	tick1 := make(chan int, 2)
-	tick2 := make(chan int, 2)
+	var wg sync.WaitGroup
 
-	tick1 <- 2
-	tick2 <- 6
+	var mp sync.Map
 
-	select {
-	case <-tick1:
-		fmt.Println("1 канал")
-	case <-tick2:
-		fmt.Println("2 канал")
-	// Блок default выполнится раньше блока case - 1 секунда слишком много для Go
-	default:
-		fmt.Println("Действие по умолчанию")
+	for i := 0; i <= 100; i++ {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+
+			mp.Store(i, i)
+
+		}()
 	}
+
+	wg.Wait()
+
+	mp.Range(func(key, value any) bool {
+		fmt.Printf("%d: %d\n", key, value)
+		return true
+	})
 }
